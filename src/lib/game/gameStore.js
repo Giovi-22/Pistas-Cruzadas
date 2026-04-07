@@ -9,10 +9,14 @@ function createRoom(roomId) {
     id: roomId,
     players: {},
     config: {
-      rowWords: ["Animales", "Países", "Comidas", "Deportes", "Películas"],
-      colWords: ["Colores", "Profesiones", "Vehículos", "Marcas", "Lugares"],
+      rowWords: ["Tortan", "Seguridad", "Lento", "Fuego", "Caballos"],
+      colWords: ["Felicidad", "Armadura", "Bombero", "Colectivo", "Oreja"],
       turnDurationSeconds: 60,
-      maxScore: 5
+      maxScore: 5,
+      teams: {
+        red: { name: "Equipo 1", color: "#f472b6" },
+        blue: { name: "Equipo 2", color: "#22d3ee" }
+      }
     },
     status: 'lobby',
     currentTurn: 'red',
@@ -24,7 +28,7 @@ function createRoom(roomId) {
     availableCoordinates: [],
     winner: null,
   };
-  
+
   // Fill all 25 coordinates
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
@@ -44,18 +48,22 @@ function deleteRoom(roomId) {
   rooms.delete(roomId);
 }
 
-function joinRoom(roomId, socketId, name) {
+function joinRoom(roomId, socketId, name, createIfNotFound = false) {
   let room = getRoom(roomId);
   if (!room) {
-    room = createRoom(roomId);
+    if (createIfNotFound) {
+      room = createRoom(roomId);
+    } else {
+      return null;
+    }
   }
-  
+
   room.players[socketId] = {
     socketId,
-    name: name || `Player ${socketId.substr(0,4)}`,
+    name: name || `Player ${socketId.substr(0, 4)}`,
     team: null
   };
-  
+
   return room;
 }
 

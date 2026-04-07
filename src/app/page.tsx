@@ -14,12 +14,15 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         if (data.roomIds && data.roomIds.length > 0) {
-          setActiveRoomId(data.roomIds[0]);
-          setRoomId(data.roomIds[0]);
+          const firstRoomId = data.roomIds[0];
+          setActiveRoomId(firstRoomId);
+          setRoomId(firstRoomId);
+          // Auto-redirect to mobile view if a room exists
+          router.replace(`/mobile/${firstRoomId}`);
         }
       })
       .catch(err => console.error("Error fetching rooms:", err));
-  }, []);
+  }, [router]);
 
   const handleCreateRoom = () => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

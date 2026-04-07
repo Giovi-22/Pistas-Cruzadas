@@ -9,7 +9,8 @@ export interface Player {
 export interface ClaimedCell {
   row: number;
   col: number;
-  team: TeamColor | 'failed';
+  team: TeamColor;
+  isCorrect: boolean;
 }
 
 export interface ActiveClue {
@@ -20,11 +21,20 @@ export interface ActiveClue {
   clueGiverId: string | null;
 }
 
+export interface TeamConfig {
+  name: string;
+  color: string;
+}
+
 export interface GameConfig {
   rowWords: string[];
   colWords: string[];
   turnDurationSeconds: number;
   maxScore: number;
+  teams: {
+    red: TeamConfig;
+    blue: TeamConfig;
+  };
 }
 
 export interface ScoreState {

@@ -6,14 +6,20 @@ import { Board } from '@/components/game/Board/Board';
 import { ScoreBoard } from '@/components/game/ScoreBoard';
 import { LobbyView } from '@/components/game/Views/LobbyView';
 import { WinnerView } from '@/components/game/Views/WinnerView';
-import { Gamepad2 } from 'lucide-react';
 import { Timer } from '@/components/game/Timer';
 import { Card } from '@/components/ui/Card';
-import { getSocket } from '@/lib/socketClient';
+import { GuessModal } from '@/components/game/GuessModal';
+import { AdminSidebar } from '@/components/game/AdminSidebar';
+import { useState } from 'react';
+import { Gamepad2, Menu, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export default function ScreenPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
-  const { room, isReady, emit } = useRoom(roomId, 'Screen');
+  const { room, isReady, emit } = useRoom(roomId, 'Screen', 'Screen');
+  const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
+  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{ row: number, col: number }>({ row: 0, col: 0 });
 
   if (!isReady || !room) {
     return (
@@ -28,14 +34,13 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
 
   const handleAdminGuess = (r: number, c: number) => {
     if (!room.activeClue || !room.activeClue.word) return;
-    
-    const rowWord = room.config.rowWords[r];
-    const colWord = room.config.colWords[c];
-    const teamName = room.currentTurn === 'red' ? 'Rojo' : 'Azul';
+    setSelectedCell({ row: r, col: c });
+    setIsGuessModalOpen(true);
+  };
 
-    if (window.confirm(`¿Apostar por ${rowWord} + ${colWord} (${String.fromCharCode(65 + r)}${c + 1}) para el equipo ${teamName}?`)) {
-      emit('submit_admin_guess', { row: r, col: c });
-    }
+  const handleConfirmGuess = () => {
+    emit('submit_admin_guess', { row: selectedCell.row, col: selectedCell.col });
+    setIsGuessModalOpen(false);
   };
 
   return (
@@ -45,12 +50,20 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
         <div className="flex items-center space-x-6">
           <Card variant="default" padding="sm" className="px-6 py-2 border-slate-700 shadow-inner">
             <span className="text-slate-400 text-sm uppercase tracking-wider font-semibold block">Sala</span>
-            <span className="text-3xl font-mono font-bold tracking-[0.2em] text-white">{roomId}</span>
+            <span className="text-3xl font-display font-bold tracking-[0.2em] text-white">{roomId}</span>
           </Card>
         </div>
 
-        <div className="flex space-x-8">
-          <ScoreBoard score={room.score} currentTurn={room.currentTurn} status={room.status} />
+        <div className="flex items-center space-x-4">
+          <ScoreBoard room={room} />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setIsAdminSidebarOpen(true)}
+            className="p-3 bg-slate-800/50 border border-slate-700 hover:bg-slate-700"
+          >
+            <Menu className="w-6 h-6" />
+          </Button>
         </div>
       </header>
 
@@ -63,7 +76,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
         {room.status === 'lobby' ? (
           <LobbyView room={room} />
         ) : room.status === 'finished' ? (
-          <WinnerView winner={room.winner} score={room.score} />
+          <WinnerView room={room} />
         ) : (
           <div className="flex flex-col md:flex-row items-start justify-center gap-12 w-full max-w-7xl relative z-10">
             {/* The Board Grid */}
@@ -92,15 +105,18 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                     ) : (
                        <>
                          <span className="text-slate-400 uppercase tracking-widest text-sm font-semibold">Pista Actual</span>
-                         <div className={`
-                           text-5xl font-black uppercase tracking-wider text-center p-6 rounded-2xl w-full
-                           ${room.activeClue.team === 'red' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20'}
-                           border-2
-                         `}>
+                         <div 
+                           className="text-5xl font-display font-black uppercase tracking-wider text-center p-6 rounded-2xl w-full border-2"
+                           style={{ 
+                             color: room.config.teams[room.activeClue.team].color, 
+                             backgroundColor: `${room.config.teams[room.activeClue.team].color}11`,
+                             borderColor: `${room.config.teams[room.activeClue.team].color}44`
+                           }}
+                         >
                            {room.activeClue.word}
                          </div>
                          <p className="text-slate-400 text-center">
-                           El equipo {room.activeClue.team === 'red' ? <span className="text-rose-400 font-bold">Rojo</span> : <span className="text-cyan-400 font-bold">Azul</span>} debe adivinar la interesección.
+                           El equipo <span className="font-bold" style={{ color: room.config.teams[room.activeClue.team].color }}>{room.config.teams[room.activeClue.team].name}</span> debe adivinar la interesección.
                          </p>
                          {room.timerEndTime && <Timer endTime={room.timerEndTime} />}
                        </>
@@ -111,15 +127,31 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                     <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center">
                       <Gamepad2 className="w-10 h-10 text-slate-500" />
                     </div>
-                    <p className="text-slate-400 text-center px-4">
-                      Esperando que el equipo {room.currentTurn === 'red' ? 'Rojo' : 'Azul'} envíe la siguiente pista...
-                    </p>
+                     <p className="text-slate-400 text-center px-4">
+                       Esperando que el <span className="font-bold" style={{ color: room.config.teams[room.currentTurn].color }}>{room.config.teams[room.currentTurn].name}</span> envíe la siguiente pista...
+                     </p>
                  </div>
                )}
             </Card>
           </div>
         )}
       </main>
+
+      <GuessModal 
+        isOpen={isGuessModalOpen}
+        onClose={() => setIsGuessModalOpen(false)}
+        onConfirm={handleConfirmGuess}
+        room={room}
+        row={selectedCell.row}
+        col={selectedCell.col}
+      />
+
+      <AdminSidebar 
+        isOpen={isAdminSidebarOpen}
+        onClose={() => setIsAdminSidebarOpen(false)}
+        room={room}
+        emit={emit}
+      />
     </div>
   );
 }

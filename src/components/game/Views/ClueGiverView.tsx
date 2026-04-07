@@ -12,7 +12,7 @@ interface ClueGiverViewProps {
   clueWord: string;
   setClueWord: (word: string) => void;
   handleSendClue: (e: React.FormEvent) => void;
-  myColor: 'rose' | 'cyan';
+  teamId: 'red' | 'blue';
 }
 
 export const ClueGiverView = ({ 
@@ -20,16 +20,26 @@ export const ClueGiverView = ({
   clueWord, 
   setClueWord, 
   handleSendClue, 
-  myColor 
+  teamId 
 }: ClueGiverViewProps) => {
+  const teamConfig = room.config.teams[teamId];
+  const color = teamConfig.color;
 
   if (room.activeClue?.word) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-        <Target className={`w-20 h-20 text-${myColor}-500 mb-4 opacity-50`} />
-        <h2 className="text-2xl font-bold text-white">Pista Enviada</h2>
-        <div className={`text-4xl font-black text-${myColor}-400 uppercase tracking-widest`}>
-          "{room.activeClue.word}"
+        <Target 
+          className="w-20 h-20 mb-4 opacity-50" 
+          style={{ color: color }}
+        />
+        <div className="p-8">
+          <h3 className="text-slate-400 uppercase font-bold text-xs tracking-[0.3em] mb-4">Pista Secreta Recibida</h3>
+          <div 
+            className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text"
+            style={{ backgroundImage: `linear-gradient(to bottom right, ${color}, #ffffff)` }}
+          >
+            "{room.activeClue.word}"
+          </div>
         </div>
         <p className="text-slate-400">El tiempo ya está corriendo. Esperando que tu equipo debata y adivine...</p>
       </div>
@@ -44,11 +54,11 @@ export const ClueGiverView = ({
 
   return (
     <div className="flex-1 flex flex-col justify-center space-y-8">
-      <Card variant={myColor === 'rose' ? 'red' : 'blue'} padding="lg" glow className="text-center">
+      <Card color={color} padding="lg" glow className="text-center">
          <h3 className="text-slate-400 uppercase font-semibold text-sm tracking-widest mb-6">Tu Objetivo Secreto</h3>
          <div className="text-5xl font-black text-white capitalize space-y-4 tracking-tight leading-tight">
            <div className="break-words">{rowObj}</div>
-           <div className={`text-${myColor}-500 text-3xl font-mono opacity-50`}>+</div>
+           <div className="text-3xl font-mono opacity-50" style={{ color: color }}>+</div>
            <div className="break-words">{colObj}</div>
          </div>
          <div className="mt-8 text-xl font-bold font-mono text-slate-500">
@@ -67,7 +77,7 @@ export const ClueGiverView = ({
           type="submit"
           disabled={!clueWord.trim()}
           className="w-full"
-          variant={myColor === 'rose' ? 'danger' : 'secondary'}
+          color={color}
           leftIcon={<Send className="w-5 h-5" />}
         >
           Enviar Pista e Iniciar Reloj

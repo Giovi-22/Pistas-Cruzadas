@@ -4,9 +4,18 @@ const { generateSecretCoordinates } = require('./utils');
 const roomTimeouts = new Map();
 
 function socketHandlers(io, socket) {
-  socket.on('join_room', ({ roomId, name }) => {
+  socket.on('join_room', ({ roomId, name, identity }) => {
     socket.join(roomId);
-    const room = joinRoom(roomId, socket.id, name);
+    
+    // Create if Screen, otherwise just join
+    const createIfNotFound = (identity === 'Screen');
+    const room = joinRoom(roomId, socket.id, name, createIfNotFound);
+    
+    if (!room) {
+      socket.emit('room_not_found');
+      return;
+    }
+    
     io.to(roomId).emit('room_state', room);
   });
 
@@ -20,12 +29,19 @@ function socketHandlers(io, socket) {
 
   socket.on('update_config', ({ roomId, config }) => {
     const room = getRoom(roomId);
-    if (room && room.status === 'lobby') {
+    if (!room) return;
+    
+    // Always allow team updates (cosmetic)
+    if (config.teams) room.config.teams = config.teams;
+
+    // Word and Timer updates only in lobby
+    if (room.status === 'lobby') {
       if (config.rowWords) room.config.rowWords = config.rowWords;
       if (config.colWords) room.config.colWords = config.colWords;
       if (config.turnDurationSeconds) room.config.turnDurationSeconds = config.turnDurationSeconds;
-      io.to(roomId).emit('room_state', room);
     }
+    
+    io.to(roomId).emit('room_state', room);
   });
 
   socket.on('start_game', ({ roomId }) => {
@@ -51,6 +67,9 @@ function socketHandlers(io, socket) {
     const player = room.players[socket.id];
     // Only allow if it's their turn and no one requested it yet
     if (player && player.team === room.currentTurn && !room.activeClue) {
+      // Clear all temporary 'X' markers (isCorrect: false) for a clean next turn
+      room.claimedCells = room.claimedCells.filter(cell => cell.isCorrect);
+
       if (room.availableCoordinates.length > 0) {
         // Pick random
         const randomIndex = Math.floor(Math.random() * room.availableCoordinates.length);
@@ -129,9 +148,11 @@ function socketHandlers(io, socket) {
     
     if (isCorrect) {
       room.score[room.currentTurn] += 1;
-      room.claimedCells.push({ row, col, team: room.currentTurn });
+      room.claimedCells.push({ row, col, team: room.currentTurn, isCorrect: true });
     } else {
-      room.claimedCells.push({ row, col, team: 'failed' });
+      room.claimedCells.push({ row, col, team: room.currentTurn, isCorrect: false });
+      // Return the coordinate to the available pool since it was missed
+      room.availableCoordinates.push({ row, col });
     }
     
     if (room.score[room.currentTurn] >= room.config.maxScore) {
@@ -154,10 +175,46 @@ function socketHandlers(io, socket) {
     io.to(roomId).emit('room_state', room);
   });
 
+  socket.on('reset_game', ({ roomId }) => {
+    const room = getRoom(roomId);
+    if (!room) return;
+
+    room.status = 'lobby';
+    room.score = { red: 0, blue: 0 };
+    room.claimedCells = [];
+    room.activeClue = null;
+    room.timerEndTime = null;
+    room.winner = null;
+    
+    // Reset coordinates pool
+    room.availableCoordinates = [];
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 5; c++) {
+        room.availableCoordinates.push({ row: r, col: c });
+      }
+    }
+
+    if (roomTimeouts.has(roomId)) {
+      clearTimeout(roomTimeouts.get(roomId));
+      roomTimeouts.delete(roomId);
+    }
+
+    io.to(roomId).emit('room_state', room);
+  });
+
   socket.on('disconnect', () => {
     const { rooms } = require('./gameStore');
     for (const [roomId, room] of rooms.entries()) {
       if (room.players[socket.id]) {
+        // If the player who disconnected was thinking of a clue, return coordinate and clear
+        if (room.activeClue && room.activeClue.clueGiverId === socket.id && !room.activeClue.word) {
+          room.availableCoordinates.push({ 
+            row: room.activeClue.targetRow, 
+            col: room.activeClue.targetCol 
+          });
+          room.activeClue = null;
+        }
+
         leaveRoom(roomId, socket.id);
         const updatedRoom = getRoom(roomId);
         if (updatedRoom) {

@@ -8,25 +8,36 @@ interface GuesserViewProps {
 }
 
 export const GuesserView = ({ room }: GuesserViewProps) => {
+  const teamId = room.currentTurn;
+  const teamConfig = room.config.teams[teamId];
+  const color = teamConfig.color;
+
   if (!room.activeClue.word) {
      return (
        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-         <div className="w-16 h-16 border-4 border-slate-700 border-t-amber-500 rounded-full animate-spin mb-4" />
-         <h2 className="text-2xl font-bold text-amber-500">Compañero Pensando</h2>
+         <div 
+           className="w-16 h-16 border-4 border-slate-700 rounded-full animate-spin mb-4" 
+           style={{ borderTopColor: color }}
+         />
+         <h2 className="text-2xl font-bold" style={{ color: color }}>Compañero Pensando</h2>
          <p className="text-slate-400">Un miembro de tu equipo está escribiendo la pista secreta. ¡Prepárate!</p>
        </div>
      );
   }
 
-  const isRed = room.currentTurn === 'red';
-
   return (
     <div className="flex-1 flex flex-col space-y-8 animate-in slide-in-from-bottom-4 duration-500">
-      <Card variant={isRed ? 'red' : 'blue'} padding="none" glow className="text-center overflow-hidden">
-         <div className={`h-2 bg-gradient-to-r ${isRed ? 'from-rose-600 to-rose-400' : 'from-cyan-600 to-cyan-400'}`} />
+      <Card color={color} padding="none" glow className="text-center overflow-hidden">
+         <div 
+           className="h-2" 
+           style={{ background: `linear-gradient(to right, ${color}, ${color}88)` }}
+         />
          <div className="p-8">
            <h3 className="text-slate-400 uppercase font-bold text-xs tracking-[0.3em] mb-4">Pista Secreta Recibida</h3>
-           <div className={`text-6xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-br ${isRed ? 'from-rose-400 to-rose-600' : 'from-cyan-400 to-cyan-600'}`}>
+           <div 
+             className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text"
+             style={{ backgroundImage: `linear-gradient(to bottom right, ${color}, #ffffff)` }}
+           >
              "{room.activeClue.word}"
            </div>
          </div>

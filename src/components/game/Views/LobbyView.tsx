@@ -63,11 +63,6 @@ export const LobbyView = ({ room }: LobbyViewProps) => {
           </div>
         </div>
 
-        <Link href={`/config/${room.id}`} passHref>
-          <Button variant="ghost" className="mt-8 gap-3">
-            <Settings className="w-5 h-5" /> Configurar Tablero y Reglas
-          </Button>
-        </Link>
       </div>
     </Card>
   );

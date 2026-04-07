@@ -8,8 +8,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-vibur);
   --font-mono: var(--font-geist-mono);
+  --animate-spin-slow: spin 3s linear infinite;
 }
 
 @media (prefers-color-scheme: dark) {

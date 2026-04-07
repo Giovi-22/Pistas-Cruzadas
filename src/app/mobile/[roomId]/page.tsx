@@ -13,7 +13,7 @@ import { TeamColor } from '@/types/game';
 
 export default function MobilePage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
-  const { room, socketId, emit, isReady } = useRoom(roomId, 'Jugador');
+  const { room, socketId, emit, isReady } = useRoom(roomId, 'Jugador', 'Player');
   const [clueWord, setClueWord] = useState('');
 
   if (!isReady || !room) {
@@ -43,7 +43,7 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
   if (room.status === 'lobby' || !me?.team) {
     return (
       <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-6 max-w-md mx-auto">
-        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 text-center mb-8">
+        <h1 className="text-4xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 text-center mb-8">
           Sala {roomId}
         </h1>
 
@@ -54,11 +54,13 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
             <TeamOption 
               active={me?.team === 'red'} 
               team="red" 
+              config={room.config.teams.red}
               onSelect={() => handleJoinTeam('red')} 
             />
             <TeamOption 
               active={me?.team === 'blue'} 
               team="blue" 
+              config={room.config.teams.blue}
               onSelect={() => handleJoinTeam('blue')} 
             />
           </div>
@@ -81,7 +83,7 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
 
   // --- FINISHED VIEW ---
   if (room.status === 'finished') {
-    return <div className="min-h-screen bg-slate-950 p-6 flex items-center justify-center"><WinnerView winner={room.winner} score={room.score} /></div>;
+    return <div className="min-h-screen bg-slate-950 p-6 flex items-center justify-center"><WinnerView room={room} /></div>;
   }
 
   // --- PLAYING STATE ---
@@ -90,15 +92,21 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col font-sans max-w-md mx-auto relative overflow-hidden overflow-y-auto">
       {/* Background glow based on my team */}
-      <div className={`absolute top-0 inset-x-0 h-32 opacity-20 pointer-events-none bg-gradient-to-b ${me.team === 'red' ? 'from-rose-500' : 'from-cyan-500'} to-transparent`} />
+      <div 
+        className="absolute top-0 inset-x-0 h-32 opacity-20 pointer-events-none transition-all duration-1000"
+        style={{ backgroundImage: `linear-gradient(to bottom, ${room.config.teams[me.team!].color}, transparent)` }}
+      />
 
       <header className="p-4 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center space-x-2">
-           <div className={`w-3 h-3 rounded-full ${me.team === 'red' ? 'bg-rose-500' : 'bg-cyan-500'} shadow-[0_0_10px_currentColor]`} />
-           <span className="font-semibold text-slate-300 capitalize">{me.team}</span>
+           <div 
+            className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]" 
+            style={{ backgroundColor: room.config.teams[me.team!].color, color: room.config.teams[me.team!].color }}
+           />
+           <span className="font-semibold text-slate-300 capitalize">{room.config.teams[me.team!].name}</span>
         </div>
-        <Badge variant={room.currentTurn === 'red' ? 'red' : 'blue'} glow>
-          Turno {room.currentTurn === 'red' ? 'Rojo' : 'Azul'}
+        <Badge color={room.config.teams[room.currentTurn].color} glow>
+          Turno {room.config.teams[room.currentTurn].name}
         </Badge>
       </header>
 
@@ -116,7 +124,7 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
                  <p className="text-slate-400">Pide una coordenada para dar una pista a tu equipo.</p>
                </div>
                <Button 
-                  variant={me.team === 'red' ? 'danger' : 'secondary'} 
+                  color={room.config.teams[me.team!].color} 
                   size="xl" 
                   className="w-full flex-col h-auto py-8" 
                   onClick={handleRequestCoordinate}
@@ -131,7 +139,7 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
               clueWord={clueWord} 
               setClueWord={setClueWord} 
               handleSendClue={handleSendClue} 
-              myColor={me.team === 'red' ? 'rose' : 'cyan'}
+              teamId={me.team as 'red' | 'blue'}
            />
          ) : (
            <GuesserView room={room} />
@@ -141,21 +149,27 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
   );
 }
 
-function TeamOption({ team, active, onSelect }: { team: TeamColor, active: boolean, onSelect: () => void }) {
-  const isRed = team === 'red';
+function TeamOption({ team, config, active, onSelect }: { team: TeamColor, config: {name: string, color: string}, active: boolean, onSelect: () => void }) {
+  const color = config.color;
   return (
-    <div className={`p-4 border ${isRed ? 'border-rose-500/30 bg-rose-500/5' : 'border-cyan-500/30 bg-cyan-500/5'} rounded-xl space-y-3`}>
-      <h3 className={`font-bold ${isRed ? 'text-rose-400' : 'text-cyan-400'} text-center uppercase tracking-widest text-sm`}>
-        Equipo {isRed ? 'Rojo' : 'Azul'}
+    <div 
+      className="p-4 border rounded-xl space-y-3 transition-colors"
+      style={{ borderColor: `${color}44`, backgroundColor: `${color}11` }}
+    >
+      <h3 
+        className="font-bold text-center uppercase tracking-widest text-sm"
+        style={{ color: color }}
+      >
+        {config.name}
       </h3>
       <div className="flex justify-center">
         <Button 
-          variant={isRed ? 'danger' : 'secondary'} 
+          color={color}
           size="sm" 
           onClick={onSelect}
           className={!active ? 'opacity-40 grayscale' : ''}
         >
-          {active ? '¡Seleccionado!' : `Unirme al ${isRed ? 'Rojo' : 'Azul'}`}
+          {active ? '¡Seleccionado!' : `Unirme`}
         </Button>
       </div>
     </div>

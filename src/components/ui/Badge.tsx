@@ -8,6 +8,7 @@ interface BadgeProps {
   size?: 'xs' | 'sm' | 'md' | 'lg';
   glow?: boolean;
   className?: string;
+  color?: string;
 }
 
 export const Badge = ({
@@ -15,7 +16,8 @@ export const Badge = ({
   variant = 'neutral',
   size = 'sm',
   glow = false,
-  className = ''
+  className = '',
+  color
 }: BadgeProps) => {
 
   const variants = {
@@ -35,12 +37,21 @@ export const Badge = ({
 
   return (
     <div className={`
-      inline-flex items-center justify-center rounded-full border
-      ${variants[variant]}
+      relative inline-flex items-center justify-center rounded-full border overflow-hidden
+      ${!color ? variants[variant] : ''}
       ${sizes[size]}
       ${glow ? 'shadow-[0_0_10px_currentColor]' : ''}
-    `}>
-      {children}
+      ${className}
+    `}
+      style={color ? { backgroundColor: `${color}22`, color: color, borderColor: `${color}44` } : {}}
+    >
+      {glow && (
+        <div 
+          className="absolute inset-0 blur-xl opacity-20 pointer-events-none" 
+          style={color ? { backgroundColor: color } : {}}
+        />
+      )}
+      <span className="relative z-10">{children}</span>
     </div>
   );
 };

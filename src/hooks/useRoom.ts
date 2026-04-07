@@ -11,7 +11,7 @@ interface useRoomReturn {
   isReady: boolean;
 }
 
-export const useRoom = (roomId: string, name: string = 'Jugador'): useRoomReturn => {
+export const useRoom = (roomId: string, name: string = 'Jugador', identity: 'Screen' | 'Player' = 'Player'): useRoomReturn => {
   const [room, setRoom] = useState<Room | null>(null);
   const [socketId, setSocketId] = useState<string>('');
   const [isReady, setIsReady] = useState(false);
@@ -25,10 +25,15 @@ export const useRoom = (roomId: string, name: string = 'Jugador'): useRoomReturn
     
     const synchronize = () => {
       setSocketId(socket.id || '');
-      socket.emit('join_room', { roomId, name });
+      socket.emit('join_room', { roomId, name, identity });
+    };
+
+    const handleNotFound = () => {
+      window.location.href = '/';
     };
 
     socket.on('connect', synchronize);
+    socket.on('room_not_found', handleNotFound);
     
     if (socket.connected) {
       synchronize();
@@ -42,6 +47,7 @@ export const useRoom = (roomId: string, name: string = 'Jugador'): useRoomReturn
     return () => {
       socket.off('room_state');
       socket.off('connect');
+      socket.off('room_not_found');
     };
   }, [roomId, name]);
 

@@ -11,6 +11,7 @@ interface CellProps {
   isTarget?: boolean;
   canGuess?: boolean;
   onGuess?: (r: number, c: number) => void;
+  teamsConfig?: Record<string, { name: string, color: string }>;
 }
 
 export const Cell = ({
@@ -19,7 +20,8 @@ export const Cell = ({
   claimed,
   isTarget = false,
   canGuess = false,
-  onGuess
+  onGuess,
+  teamsConfig
 }: CellProps) => {
 
   const handleClick = () => {
@@ -34,12 +36,20 @@ export const Cell = ({
     return `${base} ${interactive}`;
   };
 
+  const getClaimedStyle = () => {
+    if (!claimed || !teamsConfig) return {};
+    const teamColor = teamsConfig[claimed.team].color;
+    return { 
+      borderColor: teamColor, 
+      boxShadow: `0_0_15px_${teamColor}66`,
+      borderWidth: '4px'
+    };
+  };
+
   const getClaimedClasses = () => {
     if (!claimed) return "";
-    if (claimed.team === 'red') return "bg-[#79b7c8] ring-4 ring-rose-500 shadow-rose-500/50";
-    if (claimed.team === 'blue') return "bg-[#79b7c8] ring-4 ring-blue-500 shadow-blue-500/50";
-    if (claimed.team === 'failed') return "bg-slate-900 border-slate-700 opacity-80";
-    return "";
+    if (!claimed.isCorrect) return "bg-slate-900 border-slate-700 opacity-90";
+    return "shadow-lg bg-[#79b7c8]";
   };
 
   return (
@@ -49,14 +59,20 @@ export const Cell = ({
     >
       {/* Main Cell Content */}
       {claimed ? (
-        <div className={`w-full h-full rounded-xl shadow-lg border-[3px] border-[#e2e8f0] flex items-center justify-center group overflow-hidden ${getClaimedClasses()}`}>
-          {claimed.team === 'failed' ? (
-            <X className="w-20 h-20 text-rose-600 opacity-90 drop-shadow-lg" />
+        <div 
+          className={`w-full h-full rounded-xl border-[3px] border-[#e2e8f0] flex items-center justify-center group overflow-hidden ${getClaimedClasses()}`}
+          style={getClaimedStyle()}
+        >
+          {!claimed.isCorrect ? (
+            <X 
+              className="w-20 h-20 drop-shadow-lg" 
+              style={{ color: teamsConfig?.[claimed.team].color }} 
+            />
           ) : (
             <div className="flex flex-row items-end gap-1">
               <span className="text-6xl font-serif font-bold text-slate-900 pb-1">{String.fromCharCode(65 + row)}</span>
               <div className="bg-white rounded-full w-8 h-8 mb-4 shadow-sm flex items-center justify-center">
-                <span className="text-xl font-black text-rose-500">{col + 1}</span>
+                <span className="text-xl font-black" style={{ color: teamsConfig?.[claimed.team].color }}>{col + 1}</span>
               </div>
             </div>
           )}

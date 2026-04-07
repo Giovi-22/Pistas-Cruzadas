@@ -8,6 +8,7 @@ interface CardProps {
   glow?: boolean;
   className?: string;
   padding?: 'none' | 'sm' | 'md' | 'lg';
+  color?: string;
 }
 
 export const Card = ({
@@ -15,7 +16,8 @@ export const Card = ({
   variant = 'default',
   glow = false,
   className = '',
-  padding = 'md'
+  padding = 'md',
+  color
 }: CardProps) => {
 
   const variants = {
