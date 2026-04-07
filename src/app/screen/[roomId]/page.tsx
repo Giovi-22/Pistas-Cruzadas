@@ -1,0 +1,125 @@
+"use client";
+
+import { use } from 'react';
+import { useRoom } from '@/hooks/useRoom';
+import { Board } from '@/components/game/Board/Board';
+import { ScoreBoard } from '@/components/game/ScoreBoard';
+import { LobbyView } from '@/components/game/Views/LobbyView';
+import { WinnerView } from '@/components/game/Views/WinnerView';
+import { Gamepad2 } from 'lucide-react';
+import { Timer } from '@/components/game/Timer';
+import { Card } from '@/components/ui/Card';
+import { getSocket } from '@/lib/socketClient';
+
+export default function ScreenPage({ params }: { params: Promise<{ roomId: string }> }) {
+  const { roomId } = use(params);
+  const { room, isReady, emit } = useRoom(roomId, 'Screen');
+
+  if (!isReady || !room) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4" />
+          <h2 className="text-2xl font-semibold">Conectando al tablero...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  const handleAdminGuess = (r: number, c: number) => {
+    if (!room.activeClue || !room.activeClue.word) return;
+    
+    const rowWord = room.config.rowWords[r];
+    const colWord = room.config.colWords[c];
+    const teamName = room.currentTurn === 'red' ? 'Rojo' : 'Azul';
+
+    if (window.confirm(`¿Apostar por ${rowWord} + ${colWord} (${String.fromCharCode(65 + r)}${c + 1}) para el equipo ${teamName}?`)) {
+      emit('submit_admin_guess', { row: r, col: c });
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+      {/* Header */}
+      <header className="bg-slate-900 border-b border-slate-800 p-4 shrink-0 flex items-center justify-between shadow-md z-10">
+        <div className="flex items-center space-x-6">
+          <Card variant="default" padding="sm" className="px-6 py-2 border-slate-700 shadow-inner">
+            <span className="text-slate-400 text-sm uppercase tracking-wider font-semibold block">Sala</span>
+            <span className="text-3xl font-mono font-bold tracking-[0.2em] text-white">{roomId}</span>
+          </Card>
+        </div>
+
+        <div className="flex space-x-8">
+          <ScoreBoard score={room.score} currentTurn={room.currentTurn} status={room.status} />
+        </div>
+      </header>
+
+      {/* Main Board Area */}
+      <main className="flex-1 overflow-hidden p-8 flex flex-col items-center justify-center relative">
+        {/* Background glow effects */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+
+        {room.status === 'lobby' ? (
+          <LobbyView room={room} />
+        ) : room.status === 'finished' ? (
+          <WinnerView winner={room.winner} score={room.score} />
+        ) : (
+          <div className="flex flex-col md:flex-row items-start justify-center gap-12 w-full max-w-7xl relative z-10">
+            {/* The Board Grid */}
+            <Board 
+              room={room} 
+              canGuess={!!(room.activeClue && room.activeClue.word)} 
+              onGuess={handleAdminGuess} 
+            />
+
+            {/* Active Clue Panel */}
+            <Card variant="default" padding="md" glow className="w-full md:w-96 shrink-0 flex flex-col">
+               <h3 className="text-xl font-bold text-slate-300 border-b border-slate-800 pb-4 mb-6">Panel de Estado</h3>
+               
+               {room.activeClue ? (
+                 <div className="flex-1 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-300">
+                    {!room.activeClue.word ? (
+                       <div className="flex flex-col items-center space-y-4 py-8 animate-pulse text-center">
+                          <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-amber-500/30">
+                            <Gamepad2 className="w-8 h-8 text-amber-500" />
+                          </div>
+                          <div>
+                            <span className="text-amber-500 font-bold uppercase tracking-widest text-sm block">Pensando Pista...</span>
+                            <p className="text-slate-500 text-xs mt-1">Un jugador está redactando la pista.</p>
+                          </div>
+                       </div>
+                    ) : (
+                       <>
+                         <span className="text-slate-400 uppercase tracking-widest text-sm font-semibold">Pista Actual</span>
+                         <div className={`
+                           text-5xl font-black uppercase tracking-wider text-center p-6 rounded-2xl w-full
+                           ${room.activeClue.team === 'red' ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20'}
+                           border-2
+                         `}>
+                           {room.activeClue.word}
+                         </div>
+                         <p className="text-slate-400 text-center">
+                           El equipo {room.activeClue.team === 'red' ? <span className="text-rose-400 font-bold">Rojo</span> : <span className="text-cyan-400 font-bold">Azul</span>} debe adivinar la interesección.
+                         </p>
+                         {room.timerEndTime && <Timer endTime={room.timerEndTime} />}
+                       </>
+                    )}
+                 </div>
+               ) : (
+                 <div className="flex-1 flex flex-col items-center justify-center opacity-50 space-y-4 py-12">
+                    <div className="w-20 h-20 rounded-full bg-slate-800 flex items-center justify-center">
+                      <Gamepad2 className="w-10 h-10 text-slate-500" />
+                    </div>
+                    <p className="text-slate-400 text-center px-4">
+                      Esperando que el equipo {room.currentTurn === 'red' ? 'Rojo' : 'Azul'} envíe la siguiente pista...
+                    </p>
+                 </div>
+               )}
+            </Card>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
