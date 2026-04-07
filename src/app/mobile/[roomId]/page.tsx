@@ -42,34 +42,34 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
   // --- LOBBY OR NO TEAM VIEW ---
   if (room.status === 'lobby' || !me?.team) {
     return (
-      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-6 max-w-md mx-auto">
+      <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-6 w-full max-w-md mx-auto">
         <h1 className="text-4xl font-display font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 text-center mb-8">
           Sala {roomId}
         </h1>
 
         <Card variant="default" padding="md" className="mb-8">
           <h2 className="text-lg font-semibold text-slate-300 mb-6 text-center">Unirse a un Equipo</h2>
-          
+
           <div className="space-y-6">
-            <TeamOption 
-              active={me?.team === 'red'} 
-              team="red" 
+            <TeamOption
+              active={me?.team === 'red'}
+              team="red"
               config={room.config.teams.red}
-              onSelect={() => handleJoinTeam('red')} 
+              onSelect={() => handleJoinTeam('red')}
             />
-            <TeamOption 
-              active={me?.team === 'blue'} 
-              team="blue" 
+            <TeamOption
+              active={me?.team === 'blue'}
+              team="blue"
               config={room.config.teams.blue}
-              onSelect={() => handleJoinTeam('blue')} 
+              onSelect={() => handleJoinTeam('blue')}
             />
           </div>
         </Card>
 
         {me?.team && room.status === 'lobby' && (
-           <Button variant="primary" size="lg" className="w-full" onClick={handleStartGame} leftIcon={<Play />}>
-             Iniciar Partida
-           </Button>
+          <Button variant="primary" size="lg" className="w-full" onClick={handleStartGame} leftIcon={<Play />}>
+            Iniciar Partida
+          </Button>
         )}
 
         {me?.team && room.status === 'playing' && (
@@ -90,20 +90,20 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
   const isMyTurn = room.currentTurn === me.team;
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col font-sans max-w-md mx-auto relative overflow-hidden overflow-y-auto">
+    <div className="min-h-screen bg-slate-950 flex flex-col font-sans w-full max-w-md mx-auto relative overflow-hidden overflow-y-auto">
       {/* Background glow based on my team */}
-      <div 
+      <div
         className="absolute top-0 inset-x-0 h-32 opacity-20 pointer-events-none transition-all duration-1000"
         style={{ backgroundImage: `linear-gradient(to bottom, ${room.config.teams[me.team!].color}, transparent)` }}
       />
 
       <header className="p-4 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center space-x-2">
-           <div 
-            className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]" 
+          <div
+            className="w-3 h-3 rounded-full shadow-[0_0_10px_currentColor]"
             style={{ backgroundColor: room.config.teams[me.team!].color, color: room.config.teams[me.team!].color }}
-           />
-           <span className="font-semibold text-slate-300 capitalize">{room.config.teams[me.team!].name}</span>
+          />
+          <span className="font-semibold text-slate-300 capitalize">{room.config.teams[me.team!].name}</span>
         </div>
         <Badge color={room.config.teams[room.currentTurn].color} glow>
           Turno {room.config.teams[room.currentTurn].name}
@@ -111,61 +111,61 @@ export default function MobilePage({ params }: { params: Promise<{ roomId: strin
       </header>
 
       <main className="flex-1 p-6 flex flex-col space-y-8 z-10">
-         {!isMyTurn ? (
-           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-              <ShieldAlert className="w-16 h-16 text-slate-700" />
-              <h2 className="text-2xl font-bold text-slate-400">Espera tu turno</h2>
-              <p className="text-slate-500">El equipo contrario está jugando.</p>
-           </div>
-         ) : !room.activeClue ? (
-            <div className="flex-1 flex flex-col items-center justify-center space-y-8">
-               <div className="text-center">
-                 <h2 className="text-3xl font-black text-white mb-2">¡Es tu turno!</h2>
-                 <p className="text-slate-400">Pide una coordenada para dar una pista a tu equipo.</p>
-               </div>
-               <Button 
-                  color={room.config.teams[me.team!].color} 
-                  size="xl" 
-                  className="w-full flex-col h-auto py-8" 
-                  onClick={handleRequestCoordinate}
-                  leftIcon={<Target className="w-12 h-12 mb-2" />}
-               >
-                 Pedir Coordenada
-               </Button>
+        {!isMyTurn ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
+            <ShieldAlert className="w-16 h-16 text-slate-700" />
+            <h2 className="text-2xl font-bold text-slate-400">Espera tu turno</h2>
+            <p className="text-slate-500">El equipo contrario está jugando.</p>
+          </div>
+        ) : !room.activeClue ? (
+          <div className="flex-1 flex flex-col items-center justify-center space-y-8">
+            <div className="text-center">
+              <h2 className="text-3xl font-black text-white mb-2">¡Es tu turno!</h2>
+              <p className="text-slate-400">Pide una coordenada para dar una pista a tu equipo.</p>
             </div>
-         ) : room.activeClue.clueGiverId === socketId ? (
-           <ClueGiverView 
-              room={room} 
-              clueWord={clueWord} 
-              setClueWord={setClueWord} 
-              handleSendClue={handleSendClue} 
-              teamId={me.team as 'red' | 'blue'}
-           />
-         ) : (
-           <GuesserView room={room} />
-         )}
+            <Button
+              color={room.config.teams[me.team!].color}
+              size="xl"
+              className="w-full flex-col h-auto py-8"
+              onClick={handleRequestCoordinate}
+              leftIcon={<Target className="w-12 h-12 mb-2" />}
+            >
+              Pedir Coordenada
+            </Button>
+          </div>
+        ) : room.activeClue.clueGiverId === socketId ? (
+          <ClueGiverView
+            room={room}
+            clueWord={clueWord}
+            setClueWord={setClueWord}
+            handleSendClue={handleSendClue}
+            teamId={me.team as 'red' | 'blue'}
+          />
+        ) : (
+          <GuesserView room={room} />
+        )}
       </main>
     </div>
   );
 }
 
-function TeamOption({ team, config, active, onSelect }: { team: TeamColor, config: {name: string, color: string}, active: boolean, onSelect: () => void }) {
+function TeamOption({ team, config, active, onSelect }: { team: TeamColor, config: { name: string, color: string }, active: boolean, onSelect: () => void }) {
   const color = config.color;
   return (
-    <div 
+    <div
       className="p-4 border rounded-xl space-y-3 transition-colors"
       style={{ borderColor: `${color}44`, backgroundColor: `${color}11` }}
     >
-      <h3 
+      <h3
         className="font-bold text-center uppercase tracking-widest text-sm"
         style={{ color: color }}
       >
         {config.name}
       </h3>
       <div className="flex justify-center">
-        <Button 
+        <Button
           color={color}
-          size="sm" 
+          size="sm"
           onClick={onSelect}
           className={!active ? 'opacity-40 grayscale' : ''}
         >

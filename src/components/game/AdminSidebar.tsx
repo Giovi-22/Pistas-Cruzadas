@@ -17,6 +17,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Room } from '@/types/game';
 import { WORD_CATEGORIES } from '@/lib/game/wordCategories';
+import { generateSmartBoard } from '@/lib/game/wordUtils';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -54,16 +55,13 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
   };
 
   const handleApplyCategory = (catId: string) => {
-    const category = WORD_CATEGORIES.find(c => c.id === catId);
-    if (category) {
-      const randomSet = category.sets[Math.floor(Math.random() * category.sets.length)];
-      emit('update_config', { 
-        config: { 
-          rowWords: randomSet.rows, 
-          colWords: randomSet.cols 
-        } 
-      });
-    }
+    const { rows, cols } = generateSmartBoard(catId);
+    emit('update_config', { 
+      config: { 
+        rowWords: rows, 
+        colWords: cols 
+      } 
+    });
   };
 
   const handleReset = () => {

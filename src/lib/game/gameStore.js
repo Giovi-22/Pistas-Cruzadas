@@ -2,14 +2,19 @@
  * In-memory game store
  */
 
-const rooms = new Map();
+// We use a global variable to persist the Map across hot reloads in Next.js
+// and to share it between the Socket.IO server and API routes.
+if (!global.rooms) {
+  global.rooms = new Map();
+}
+const rooms = global.rooms;
 
 function createRoom(roomId) {
   const newRoom = {
     id: roomId,
     players: {},
     config: {
-      rowWords: ["Tortan", "Seguridad", "Lento", "Fuego", "Caballos"],
+      rowWords: ["Torta", "Seguridad", "Lento", "Fuego", "Caballos"],
       colWords: ["Felicidad", "Armadura", "Bombero", "Colectivo", "Oreja"],
       turnDurationSeconds: 60,
       maxScore: 5,

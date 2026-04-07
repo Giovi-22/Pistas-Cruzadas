@@ -33,7 +33,7 @@ export default function RootLayout({
       lang="en"
       className={`${vibur.variable} ${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans w-full ">{children}</body>
     </html>
   );
 }

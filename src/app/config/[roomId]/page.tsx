@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
 import { WORD_CATEGORIES, WordSet } from '@/lib/game/wordCategories';
 import { RefreshCw, Book } from 'lucide-react';
+import { generateSmartBoard } from '@/lib/game/wordUtils';
 
 export default function ConfigPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
@@ -60,13 +61,9 @@ export default function ConfigPage({ params }: { params: Promise<{ roomId: strin
   };
 
   const handleApplyCategory = (catId: string) => {
-    const category = WORD_CATEGORIES.find(c => c.id === catId);
-    if (category) {
-      // Pick a random set from that category
-      const randomSet = category.sets[Math.floor(Math.random() * category.sets.length)];
-      setRowWords(randomSet.rows);
-      setColWords(randomSet.cols);
-    }
+    const { rows, cols } = generateSmartBoard(catId);
+    setRowWords(rows);
+    setColWords(cols);
   };
 
   const handleSaveAndStart = () => {
