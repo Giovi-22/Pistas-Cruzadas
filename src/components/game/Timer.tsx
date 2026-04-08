@@ -23,8 +23,8 @@ export const Timer = ({ endTime }: TimerProps) => {
   const isLow = timeLeft <= 10 && timeLeft > 0;
 
   return (
-    <div className="flex flex-col items-center">
-      <div className={`text-6xl font-black font-mono transition-colors ${isLow ? 'text-red-500 animate-pulse' : 'text-white'}`}>
+    <div className="flex flex-col items-center mt-2">
+      <div className={`text-4xl font-black font-mono transition-colors ${isLow ? 'text-red-500 animate-pulse' : 'text-white'}`}>
         00:{timeLeft.toString().padStart(2, '0')}
       </div>
       {isLow && (

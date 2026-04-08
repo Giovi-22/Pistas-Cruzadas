@@ -3,6 +3,8 @@
 import React from 'react';
 import { Cell } from './Cell';
 import { Room, ClaimedCell } from '@/types/game';
+import { RowCard } from './RowCard';
+import { ColumnCard } from './ColumnCard';
 
 interface BoardProps {
   room: Room;
@@ -18,49 +20,30 @@ export const Board = ({ room, canGuess = false, onGuess }: BoardProps) => {
   };
 
   return (
-    <div className="grid gap-4" style={{
-      gridTemplateColumns: `140px repeat(${config.colWords.length}, 110px)`,
-      gridTemplateRows: `140px repeat(${config.rowWords.length}, 110px)`
+    <div className="grid gap-[1vh] items-stretch justify-center" style={{
+      gridTemplateColumns: `16vh repeat(${config.colWords.length}, 13vh)`,
+      gridTemplateRows: `16vh repeat(${config.rowWords.length}, 13vh)`
     }}>
       {/* Empty top-left corner */}
       <div />
 
       {/* Column Headers */}
       {config.colWords.map((word, i) => (
-        <div key={`col-${i}`} className="flex flex-col rounded-xl overflow-hidden border-[6px] border-slate-700/50 shadow-xl bg-orange-50/90 aspect-[3/4]">
-          <div className="flex-1 flex items-center justify-center text-8xl font-display text-slate-800 drop-shadow-sm font-black text-center pt-1">
-            {i + 1}
-          </div>
-          <div className="bg-slate-700 h-[35%] flex flex-col items-center justify-center border-t-4 border-slate-800/20 px-1 py-1">
-            <span className="text-white font-bold uppercase text-[11px] leading-tight text-center tracking-widest drop-shadow-md">
-              {word}
-            </span>
-          </div>
-        </div>
+        <ColumnCard c={i} colWord={word} key={`col-${i}`} />
       ))}
 
       {/* Rows */}
       {config.rowWords.map((rowWord, r) => (
         <React.Fragment key={`row-${r}`}>
           {/* Row Header */}
-          <div className="flex flex-row rounded-xl overflow-hidden border-[6px] border-slate-700/50 shadow-xl bg-orange-50/90 aspect-[4/3]">
-            <div className="flex-1 flex items-center justify-center text-8xl font-display text-slate-800 drop-shadow-sm font-black pl-1">
-              {String.fromCharCode(65 + r)}
-            </div>
-            <div className="bg-slate-700 w-[35%] flex items-center justify-center border-l-4 border-slate-800/20 relative">
-               <span className="text-white font-bold uppercase text-[11px] tracking-widest drop-shadow-md whitespace-nowrap origin-center -rotate-90 absolute">
-                 {rowWord}
-               </span>
-            </div>
-          </div>
-
+          <RowCard r={r} rowWord={rowWord} key={`row-${r}`} />
           {/* Row Cells */}
           {config.colWords.map((_, c) => {
             const claimed = getCellState(r, c);
             const isTarget = !!(activeClue && activeClue.targetRow === r && activeClue.targetCol === c);
-            
+
             return (
-              <Cell 
+              <Cell
                 key={`cell-${r}-${c}`}
                 row={r}
                 col={c}

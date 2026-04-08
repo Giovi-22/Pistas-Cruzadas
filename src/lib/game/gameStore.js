@@ -53,7 +53,7 @@ function deleteRoom(roomId) {
   rooms.delete(roomId);
 }
 
-function joinRoom(roomId, socketId, name, createIfNotFound = false) {
+function joinRoom(roomId, socketId, name, createIfNotFound = false, identity = 'Player') {
   let room = getRoom(roomId);
   if (!room) {
     if (createIfNotFound) {
@@ -66,7 +66,8 @@ function joinRoom(roomId, socketId, name, createIfNotFound = false) {
   room.players[socketId] = {
     socketId,
     name: name || `Player ${socketId.substr(0, 4)}`,
-    team: null
+    team: null,
+    identity
   };
 
   return room;

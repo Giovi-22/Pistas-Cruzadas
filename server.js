@@ -7,6 +7,8 @@ const dev = process.env.NODE_ENV !== "production";
 const hostname = "0.0.0.0";
 const port = process.env.PORT || 3000;
 
+const cors = require('cors')();
+
 // Initialize Next.js app
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
@@ -16,8 +18,10 @@ const { socketHandlers } = require("./src/lib/game/socketHandlers");
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
+    cors(req, res, () => {
+      const parsedUrl = parse(req.url, true);
+      handle(req, res, parsedUrl);
+    });
   });
 
   const io = new Server(httpServer, {

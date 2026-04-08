@@ -13,7 +13,7 @@ interface ScoreBoardProps {
 export const ScoreBoard = ({ room }: ScoreBoardProps) => {
   const { score, currentTurn, status, config } = room;
   return (
-    <div className="flex space-x-4 md:space-x-8">
+    <div className="flex space-x-2 md:space-x-4">
       <ScoreBox 
         team="red" 
         score={score.red} 
@@ -35,8 +35,8 @@ const ScoreBox = ({ team, score, isTurn, config }: { team: 'red' | 'blue', score
   
   return (
     <div 
-      className={`relative flex items-center space-x-4 bg-slate-800/80 px-6 py-3 rounded-2xl border-2 transition-all duration-300 ${isTurn ? 'shadow-xl' : 'border-slate-700/50'}`}
-      style={isTurn ? { borderColor: color, boxShadow: `0 0 15px ${color}4d` } : {}}
+      className={`relative flex items-center space-x-3 bg-slate-800/80 px-4 py-1.5 rounded-xl border transition-all duration-300 ${isTurn ? 'shadow-lg' : 'border-slate-700/50'}`}
+      style={isTurn ? { borderColor: color, boxShadow: `0 0 10px ${color}33` } : {}}
     >
       {isTurn && (
         <span className="absolute -top-2 -right-2 flex h-4 w-4">
@@ -51,13 +51,13 @@ const ScoreBox = ({ team, score, isTurn, config }: { team: 'red' | 'blue', score
         </span>
       )}
       <div 
-        className="font-display font-bold text-2xl"
+        className="font-display font-bold text-lg"
         style={{ color: `${color}cc` }}
       >
         {config.name}
       </div>
       <div 
-        className="text-5xl font-display font-black leading-none"
+        className="text-3xl font-display font-black leading-none"
         style={{ color: color }}
       >
         {score}

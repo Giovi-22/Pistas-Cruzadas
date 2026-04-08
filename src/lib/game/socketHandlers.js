@@ -9,7 +9,7 @@ function socketHandlers(io, socket) {
     
     // Create if Screen, otherwise just join
     const createIfNotFound = (identity === 'Screen');
-    const room = joinRoom(roomId, socket.id, name, createIfNotFound);
+    const room = joinRoom(roomId, socket.id, name, createIfNotFound, identity);
     
     if (!room) {
       socket.emit('room_not_found');
@@ -203,9 +203,12 @@ function socketHandlers(io, socket) {
   });
 
   socket.on('disconnect', () => {
-    const { rooms } = require('./gameStore');
+    const { rooms, deleteRoom } = require('./gameStore');
     for (const [roomId, room] of rooms.entries()) {
       if (room.players[socket.id]) {
+        const player = room.players[socket.id];
+        const isScreen = player.identity === 'Screen';
+
         // If the player who disconnected was thinking of a clue, return coordinate and clear
         if (room.activeClue && room.activeClue.clueGiverId === socket.id && !room.activeClue.word) {
           room.availableCoordinates.push({ 
@@ -213,6 +216,13 @@ function socketHandlers(io, socket) {
             col: room.activeClue.targetCol 
           });
           room.activeClue = null;
+        }
+
+        if (isScreen) {
+          console.log(`[Socket] Admin disconnected. Deleting room: ${roomId}`);
+          deleteRoom(roomId);
+          io.to(roomId).emit('room_not_found');
+          continue; // Move to next room check (though usually one per socket)
         }
 
         leaveRoom(roomId, socket.id);
