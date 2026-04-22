@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Vibur, Outfit, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -21,6 +21,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Pistas Cruzadas",
   description: "Juego de pistas cruzadas en tiempo real",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Pistas Cruzadas",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0f172a",
 };
 
 export default function RootLayout({

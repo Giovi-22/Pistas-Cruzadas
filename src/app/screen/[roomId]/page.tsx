@@ -46,10 +46,10 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
   return (
     <div className="h-screen bg-[#E7E5DA] text-slate-100 flex flex-col font-sans overflow-hidden">
       {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800 p-2 shrink-0 flex items-center justify-between shadow-md z-10">
+      <header className="bg-slate-900 border-b border-slate-800 p-4 shrink-0 flex items-center justify-between shadow-md z-10">
         <div className="flex items-center space-x-6">
           <Card variant="default" padding="sm" className="px-4 py-1 border-slate-700 shadow-inner flex items-center space-x-3">
-            <span className="text-slate-500 text-[10px] uppercase tracking-wider font-bold">Sala</span>
+            <span className="text-slate-500 text-[14px] uppercase tracking-wider font-bold">Sala</span>
             <span className="text-xl font-display font-bold tracking-[0.1em] text-white leading-none">{roomId}</span>
           </Card>
         </div>
