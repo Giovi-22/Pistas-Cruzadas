@@ -6,6 +6,7 @@ import { Room } from '@/types/game';
 import { Card } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { Input } from '../../ui/Input';
+import { Timer } from '../Timer';
 
 interface ClueGiverViewProps {
   room: Room;
@@ -64,6 +65,12 @@ export const ClueGiverView = ({
          <div className="mt-8 text-xl font-bold font-mono text-slate-500">
            Celda {String.fromCharCode(65 + targetRow)}{targetCol + 1}
          </div>
+         {room.timerEndTime && (
+           <div className="mt-4 border-t border-white/10 pt-4">
+             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest block mb-1">Tiempo para pensar</span>
+             <Timer endTime={room.timerEndTime} variant="thinking" />
+           </div>
+         )}
       </Card>
 
       <form onSubmit={handleSendClue} className="space-y-4">

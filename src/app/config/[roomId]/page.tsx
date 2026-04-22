@@ -3,7 +3,7 @@
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useRoom } from '@/hooks/useRoom';
-import { Settings, Save, Clock } from 'lucide-react';
+import { Settings, Save, Clock, Brain } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -19,6 +19,8 @@ export default function ConfigPage({ params }: { params: Promise<{ roomId: strin
   const [rowWords, setRowWords] = useState(["", "", "", "", ""]);
   const [colWords, setColWords] = useState(["", "", "", "", ""]);
   const [turnDuration, setTurnDuration] = useState<number | string>(60);
+  const [thinkingTimerEnabled, setThinkingTimerEnabled] = useState(false);
+  const [thinkingDuration, setThinkingDuration] = useState<number | string>(30);
   const [teams, setTeams] = useState({
     red: { name: "Equipo 1", color: "#f9a8d4" },
     blue: { name: "Equipo 2", color: "#93c5fd" }
@@ -39,6 +41,8 @@ export default function ConfigPage({ params }: { params: Promise<{ roomId: strin
       setRowWords(room.config.rowWords);
       setColWords(room.config.colWords);
       setTurnDuration(room.config.turnDurationSeconds || 60);
+      setThinkingTimerEnabled(!!room.config.thinkingTimerEnabled);
+      setThinkingDuration(room.config.thinkingDurationSeconds || 30);
       if (room.config.teams) {
         setTeams(room.config.teams);
       }
@@ -74,6 +78,8 @@ export default function ConfigPage({ params }: { params: Promise<{ roomId: strin
         rowWords,
         colWords,
         turnDurationSeconds: finalDuration,
+        thinkingTimerEnabled,
+        thinkingDurationSeconds: Math.max(5, typeof thinkingDuration === 'number' ? thinkingDuration : parseInt(thinkingDuration as string) || 30),
         teams
       }
     });
@@ -237,6 +243,49 @@ export default function ConfigPage({ params }: { params: Promise<{ roomId: strin
                 <span className="text-slate-500 font-bold uppercase text-xs">seg</span>
               </div>
            </div>
+        </Card>
+
+        {/* Thinking Timer Config */}
+        <Card variant="default" padding="md" className="border-slate-800">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-4">
+                <Brain className={`w-8 h-8 ${thinkingTimerEnabled ? 'text-pink-400' : 'text-slate-600'}`} />
+                <h2 className="text-xl font-bold text-slate-300">Tiempo para Pensar Pista</h2>
+              </div>
+              <button 
+                onClick={() => setThinkingTimerEnabled(!thinkingTimerEnabled)}
+                className={`px-4 py-2 rounded-lg font-bold transition-all ${thinkingTimerEnabled ? 'bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.4)]' : 'bg-slate-800 text-slate-500 border border-slate-700'}`}
+              >
+                {thinkingTimerEnabled ? 'HABILITADO' : 'DESHABILITADO'}
+              </button>
+           </div>
+           
+           {thinkingTimerEnabled && (
+             <div className="flex flex-col md:flex-row gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                {[15, 30, 45, 60].map(preset => (
+                   <button
+                      key={preset}
+                      onClick={() => setThinkingDuration(preset)}
+                      className={`flex-1 py-4 font-bold rounded-xl transition-all ${thinkingDuration === preset ? 'bg-pink-500 text-white shadow-[0_0_15px_rgba(236,72,153,0.3)] scale-105' : 'bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700'}`}
+                   >
+                      {preset}s
+                   </button>
+                ))}
+                
+                <div className="flex items-center space-x-2 w-full md:w-auto">
+                  <Input 
+                    type="number" 
+                    value={thinkingDuration}
+                    onChange={(e) => setThinkingDuration(e.target.value === '' ? '' : parseInt(e.target.value))}
+                    className="w-24 text-center text-xl p-3"
+                  />
+                  <span className="text-slate-500 font-bold uppercase text-xs">seg</span>
+                </div>
+             </div>
+           )}
+           <p className="mt-4 text-xs text-slate-500 italic">
+             Si se habilita, el jugador tendrá un tiempo limitado para redactar la pista antes de que el turno pase automáticamente.
+           </p>
         </Card>
 
         {/* Action Button */}

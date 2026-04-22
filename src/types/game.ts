@@ -30,6 +30,8 @@ export interface GameConfig {
   rowWords: string[];
   colWords: string[];
   turnDurationSeconds: number;
+  thinkingTimerEnabled: boolean;
+  thinkingDurationSeconds: number;
   maxScore: number;
   teams: {
     red: TeamConfig;

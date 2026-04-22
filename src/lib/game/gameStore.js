@@ -17,6 +17,8 @@ function createRoom(roomId) {
       rowWords: ["Torta", "Seguridad", "Lento", "Fuego", "Caballos"],
       colWords: ["Felicidad", "Armadura", "Bombero", "Colectivo", "Oreja"],
       turnDurationSeconds: 60,
+      thinkingTimerEnabled: false,
+      thinkingDurationSeconds: 30,
       maxScore: 5,
       teams: {
         red: { name: "Equipo 1", color: "#f472b6" },

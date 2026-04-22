@@ -34,12 +34,16 @@ function socketHandlers(io, socket) {
     // Always allow team updates (cosmetic)
     if (config.teams) room.config.teams = config.teams;
 
-    // Word and Timer updates only in lobby
+    // Word updates only in lobby
     if (room.status === 'lobby') {
       if (config.rowWords) room.config.rowWords = config.rowWords;
       if (config.colWords) room.config.colWords = config.colWords;
-      if (config.turnDurationSeconds) room.config.turnDurationSeconds = config.turnDurationSeconds;
     }
+    
+    // Timer updates allowed anytime
+    if (config.turnDurationSeconds) room.config.turnDurationSeconds = config.turnDurationSeconds;
+    if (config.thinkingTimerEnabled !== undefined) room.config.thinkingTimerEnabled = config.thinkingTimerEnabled;
+    if (config.thinkingDurationSeconds) room.config.thinkingDurationSeconds = config.thinkingDurationSeconds;
     
     io.to(roomId).emit('room_state', room);
   });
@@ -86,6 +90,35 @@ function socketHandlers(io, socket) {
           clueGiverId: socket.id
         };
 
+        // Thinking Timer Logic
+        if (room.config.thinkingTimerEnabled) {
+          room.timerEndTime = Date.now() + room.config.thinkingDurationSeconds * 1000;
+          
+          // Clear old timeout if any
+          if (roomTimeouts.has(roomId)) {
+            clearTimeout(roomTimeouts.get(roomId));
+          }
+
+          const tid = setTimeout(() => {
+            const r = getRoom(roomId);
+            if (r && r.status === 'playing' && r.activeClue && !r.activeClue.word) {
+              console.log(`[Socket] Thinking timeout for ${roomId}. Returning coordinate and passing turn.`);
+              // Return coordinate to pool
+              r.availableCoordinates.push({ 
+                row: r.activeClue.targetRow, 
+                col: r.activeClue.targetCol 
+              });
+              r.currentTurn = r.currentTurn === 'red' ? 'blue' : 'red';
+              r.activeClue = null;
+              r.timerEndTime = null;
+              roomTimeouts.delete(roomId);
+              io.to(roomId).emit('room_state', r);
+            }
+          }, room.config.thinkingDurationSeconds * 1000);
+          
+          roomTimeouts.set(roomId, tid);
+        }
+
         io.to(roomId).emit('room_state', room);
       }
     }
@@ -111,6 +144,13 @@ function socketHandlers(io, socket) {
     // TEMPORARILY DISABLED SECURITY CHECK TO FIX DROPPED EMITS
     // if (room.activeClue.clueGiverId === socket.id) {
       console.log(`[Socket] send_clue accepted, updating activeClue...`);
+      
+      // Clear old thinking timeout if any
+      if (roomTimeouts.has(roomId)) {
+        clearTimeout(roomTimeouts.get(roomId));
+        roomTimeouts.delete(roomId);
+      }
+
       room.activeClue.word = word;
       room.timerEndTime = Date.now() + room.config.turnDurationSeconds * 1000;
       

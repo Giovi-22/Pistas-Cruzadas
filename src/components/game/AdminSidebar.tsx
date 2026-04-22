@@ -10,8 +10,12 @@ import {
   Check, 
   Book,
   Users,
-  Palette
+  Palette,
+  Clock,
+  PlusCircle,
+  Brain
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
@@ -27,8 +31,19 @@ interface AdminSidebarProps {
 }
 
 export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps) => {
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
+  const [turnDuration, setTurnDuration] = useState<number | string>(room.config.turnDurationSeconds || 60);
+  const [thinkingTimerEnabled, setThinkingTimerEnabled] = useState(!!room.config.thinkingTimerEnabled);
+  const [thinkingDuration, setThinkingDuration] = useState<number | string>(room.config.thinkingDurationSeconds || 30);
+
+  // Sync state when room config changes externally
+  React.useEffect(() => {
+    if (room.config.turnDurationSeconds) setTurnDuration(room.config.turnDurationSeconds);
+    setThinkingTimerEnabled(!!room.config.thinkingTimerEnabled);
+    if (room.config.thinkingDurationSeconds) setThinkingDuration(room.config.thinkingDurationSeconds);
+  }, [room.config.turnDurationSeconds, room.config.thinkingTimerEnabled, room.config.thinkingDurationSeconds]);
 
   const pastelColors = [
     { name: 'Rose', hex: '#f9a8d4' },
@@ -62,6 +77,27 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
         colWords: cols 
       } 
     });
+  };
+  
+  const handleUpdateTimer = (seconds: number) => {
+    setTurnDuration(seconds);
+    emit('update_config', { config: { turnDurationSeconds: seconds } });
+  };
+
+  const handleToggleThinkingTimer = () => {
+    const newState = !thinkingTimerEnabled;
+    setThinkingTimerEnabled(newState);
+    emit('update_config', { config: { thinkingTimerEnabled: newState } });
+  };
+
+  const handleUpdateThinkingDuration = (seconds: number) => {
+    setThinkingDuration(seconds);
+    emit('update_config', { config: { thinkingDurationSeconds: seconds } });
+  };
+
+  const handleNewGame = () => {
+    router.push(`/config/${room.id}`);
+    onClose();
   };
 
   const handleReset = () => {
@@ -142,7 +178,6 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
               </div>
             ))}
           </section>
-
           {/* Categories Section - Only in Lobby */}
           {room.status === 'lobby' && (
             <section className="space-y-4">
@@ -163,20 +198,110 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
               </div>
             </section>
           )}
+
+          {/* Timer Section - Always visible to Admin */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+              <Clock className="w-3 h-3" /> Tiempo por Turno
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[30, 60, 90].map(seconds => (
+                <button
+                  key={seconds}
+                  onClick={() => handleUpdateTimer(seconds)}
+                  className={`py-2 text-xs font-bold rounded-lg border transition-all ${turnDuration === seconds ? 'bg-amber-500/20 border-amber-500 text-amber-400' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
+                >
+                  {seconds}s
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3">
+              <Input 
+                type="number" 
+                value={turnDuration}
+                onChange={(e) => {
+                  const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                  setTurnDuration(val);
+                  if (typeof val === 'number' && val >= 5) {
+                    emit('update_config', { config: { turnDurationSeconds: val } });
+                  }
+                }}
+                className="h-9 text-center text-xs"
+                placeholder="Manual"
+              />
+              <span className="text-[10px] text-slate-500 font-bold uppercase">segundos</span>
+            </div>
+          </section>
+
+          {/* Thinking Timer Section */}
+          <section className="space-y-4 border-t border-slate-800/50 pt-4">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                  <Brain className={`w-3 h-3 ${thinkingTimerEnabled ? 'text-pink-400' : ''}`} /> Pensar Pista
+                </div>
+                <button 
+                  onClick={handleToggleThinkingTimer}
+                  className={`px-3 py-1 rounded-md text-[10px] font-bold transition-all ${thinkingTimerEnabled ? 'bg-pink-500/20 text-pink-400 border border-pink-500/50' : 'bg-slate-800 text-slate-500 border border-slate-700'}`}
+                >
+                  {thinkingTimerEnabled ? 'ON' : 'OFF'}
+                </button>
+             </div>
+
+             {thinkingTimerEnabled && (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="grid grid-cols-3 gap-2">
+                    {[15, 30, 45].map(seconds => (
+                      <button
+                        key={seconds}
+                        onClick={() => handleUpdateThinkingDuration(seconds)}
+                        className={`py-2 text-xs font-bold rounded-lg border transition-all ${thinkingDuration === seconds ? 'bg-pink-500/20 border-pink-500 text-pink-400' : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
+                      >
+                        {seconds}s
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Input 
+                      type="number" 
+                      value={thinkingDuration}
+                      onChange={(e) => {
+                        const val = e.target.value === '' ? '' : parseInt(e.target.value);
+                        setThinkingDuration(val);
+                        if (typeof val === 'number' && val >= 5) {
+                          emit('update_config', { config: { thinkingDurationSeconds: val } });
+                        }
+                      }}
+                      className="h-9 text-center text-xs"
+                      placeholder="Pensar"
+                    />
+                    <span className="text-[10px] text-slate-500 font-bold uppercase">segundos para pensar</span>
+                  </div>
+                </div>
+             )}
+          </section>
         </div>
 
-        <footer className="p-6 border-t border-slate-800 space-y-4 bg-slate-950/20">
+        <footer className="p-6 border-t border-slate-800 space-y-3 bg-slate-950/20">
+          <Button 
+            variant="primary" 
+            className="w-full py-6 gap-3 shadow-lg shadow-indigo-500/20"
+            onClick={handleNewGame}
+            leftIcon={<PlusCircle className="w-5 h-5" />}
+          >
+            Nueva Partida (Configurar)
+          </Button>
+
           <Button 
             variant="ghost" 
-            className={`w-full py-6 gap-3 transition-all ${resetConfirm ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'text-slate-500 hover:text-white'}`}
+            className={`w-full py-4 gap-3 transition-all border border-transparent ${resetConfirm ? 'bg-red-500/20 text-red-400 border-red-500/50' : 'text-slate-500 hover:text-slate-300'}`}
             onClick={handleReset}
-            leftIcon={<RotateCcw className={`w-5 h-5 ${resetConfirm ? 'animate-spin' : ''}`} />}
+            leftIcon={<RotateCcw className={`w-4 h-4 ${resetConfirm ? 'animate-spin' : ''}`} />}
           >
-            {resetConfirm ? '¿Estás Seguro?' : 'Reiniciar nueva partida'}
+            {resetConfirm ? '¿Confirmar Reinicio?' : 'Reiniciar al Lobby'}
           </Button>
           {!resetConfirm && (
              <p className="text-[10px] text-slate-600 text-center">
-               El reinicio borrará el progreso y volverá a la configuración.
+               El reinicio mantiene a los jugadores pero borra el tablero.
              </p>
           )}
         </footer>

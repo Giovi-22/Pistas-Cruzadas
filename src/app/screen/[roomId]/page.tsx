@@ -100,6 +100,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                       <div>
                         <span className="text-amber-500 font-bold uppercase tracking-widest text-sm block">Pensando Pista...</span>
                         <p className="text-slate-500 text-xs mt-1">Un jugador está redactando la pista.</p>
+                        {room.timerEndTime && <Timer endTime={room.timerEndTime} variant="thinking" />}
                       </div>
                     </div>
                   ) : (
