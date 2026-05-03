@@ -5,13 +5,14 @@
   "main": "electron-main.js",
   "scripts": {
     "dev": "node server.js",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "NODE_ENV=production node server.js",
     "lint": "eslint",
     "electron:dev": "concurrently \"node server.js\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:dist": "npm run build && electron-builder"
+    "electron:dist": "next build --webpack && electron-builder"
   },
   "build": {
+    "asar": false,
     "appId": "com.pistas.cruzadas",
     "productName": "Pistas Cruzadas",
     "win": {
@@ -22,11 +23,12 @@
       "allowToChangeInstallationDirectory": true
     },
     "files": [
-      "**/*",
-      "!dist/*",
-      "!.next/*",
-      ".next/standalone/**/*",
-      ".next/static/**/*"
+      "electron-main.js",
+      "server.js",
+      "package.json",
+      ".next/**/*",
+      "src/**/*",
+      "public/**/*"
     ],
     "directories": {
       "output": "dist-electron"

@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# electron & build
+/dist-electron
+/dist
+/release
+/public/sw.js
+/public/workbox-*.js
+/public/fallback-*.js
