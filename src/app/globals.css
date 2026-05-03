@@ -9,7 +9,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-outfit);
-  --font-display: var(--font-vibur);
+  --font-display: var(--font-outfit);
   --font-mono: var(--font-geist-mono);
   --animate-spin-slow: spin 3s linear infinite;
 }
@@ -82,6 +82,17 @@ body {
 }
 
 .index-stroke {
-  -webkit-text-stroke: 0.02px white;
-  text-shadow: 0.02px 0.02px 0.02px rgba(0, 0, 0, 0.05);
+  /* Al usar text-shadow múltiple en lugar de -webkit-text-stroke,
+     el borde blanco se dibuja EXCLUSIVAMENTE hacia afuera.
+     De esta forma, nunca "comerá" ni tapará el ancho que tiene tu "relleno" negro de la letra. */
+  text-shadow:
+    -3px -3px 0 white,
+     3px -3px 0 white,
+    -3px  3px 0 white,
+     3px  3px 0 white,
+     0px  3px 0 white,
+     3px  0px 0 white,
+    -3px  0px 0 white,
+     0px -3px 0 white,
+     4px  4px 6px rgba(0, 0, 0, 0.4); /* Y una sombra sutil de yapa :) */
 }

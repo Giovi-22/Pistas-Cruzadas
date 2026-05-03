@@ -32,10 +32,10 @@ export const GuesserView = ({ room }: GuesserViewProps) => {
            className="h-2" 
            style={{ background: `linear-gradient(to right, ${color}, ${color}88)` }}
          />
-         <div className="p-8">
+         <div className="p-8 w-full overflow-hidden">
            <h3 className="text-slate-400 uppercase font-bold text-xs tracking-[0.3em] mb-4">Pista Secreta Recibida</h3>
            <div 
-             className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text"
+             className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text break-words"
              style={{ backgroundImage: `linear-gradient(to bottom right, ${color}, #ffffff)` }}
            >
              "{room.activeClue.word}"

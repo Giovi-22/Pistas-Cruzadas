@@ -33,10 +33,10 @@ export const ClueGiverView = ({
           className="w-20 h-20 mb-4 opacity-50" 
           style={{ color: color }}
         />
-        <div className="p-8">
+        <div className="p-8 w-full max-w-2xl overflow-hidden">
           <h3 className="text-slate-400 uppercase font-bold text-xs tracking-[0.3em] mb-4">Pista Secreta Recibida</h3>
           <div 
-            className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text"
+            className="text-6xl font-display font-black uppercase tracking-widest text-transparent bg-clip-text break-words"
             style={{ backgroundImage: `linear-gradient(to bottom right, ${color}, #ffffff)` }}
           >
             "{room.activeClue.word}"
