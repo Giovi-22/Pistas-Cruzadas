@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import { useRoom } from '@/hooks/useRoom';
 import { Board } from '@/components/game/Board/Board';
 import { ScoreBoard } from '@/components/game/ScoreBoard';
@@ -10,8 +10,7 @@ import { Timer } from '@/components/game/Timer';
 import { Card } from '@/components/ui/Card';
 import { GuessModal } from '@/components/game/GuessModal';
 import { AdminSidebar } from '@/components/game/AdminSidebar';
-import { useState } from 'react';
-import { Gamepad2, Menu, Settings } from 'lucide-react';
+import { Gamepad2, Menu, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 
 export default function ScreenPage({ params }: { params: Promise<{ roomId: string }> }) {
@@ -20,6 +19,15 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
   const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
   const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number }>({ row: 0, col: 0 });
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
 
   if (!isReady || !room) {
     return (
@@ -43,29 +51,48 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
     setIsGuessModalOpen(false);
   };
 
-  return (
-    <div className="h-screen bg-[#E7E5DA] text-slate-100 flex flex-col font-sans overflow-hidden">
-      {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-800 p-4 shrink-0 flex items-center justify-between shadow-md z-10">
-        <div className="flex items-center space-x-6">
-          <Card variant="default" padding="sm" className="px-4 py-1 border-slate-700 shadow-inner flex items-center space-x-3">
-            <span className="text-slate-500 text-[14px] uppercase tracking-wider font-bold">Sala</span>
-            <span className="text-xl font-display font-bold tracking-[0.1em] text-white leading-none">{roomId}</span>
-          </Card>
-        </div>
+  const handleExitFullscreen = () => {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  };
 
-        <div className="flex items-center space-x-4">
-          <ScoreBoard room={room} />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsAdminSidebarOpen(true)}
-            className="p-3 bg-slate-800/50 border border-slate-700 hover:bg-slate-700"
-          >
-            <Menu className="w-6 h-6" />
-          </Button>
-        </div>
-      </header>
+  return (
+    <div className="h-screen bg-[#E7E5DA] text-slate-100 flex flex-col font-sans overflow-hidden relative">
+      {/* Header */}
+      {!isFullscreen && (
+        <header className="bg-slate-900 border-b border-slate-800 py-2 px-4 shrink-0 flex items-center justify-between shadow-md z-10">
+          <div className="flex items-center space-x-6">
+            <Card variant="default" padding="sm" className="px-4 py-1 border-slate-700 shadow-inner flex items-center space-x-3">
+              <span className="text-slate-500 text-[14px] uppercase tracking-wider font-bold">Sala</span>
+              <span className="text-xl font-display font-bold tracking-[0.1em] text-white leading-none">{roomId}</span>
+            </Card>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <ScoreBoard room={room} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsAdminSidebarOpen(true)}
+              className="p-2 bg-slate-800/50 border border-slate-700 hover:bg-slate-700"
+            >
+              <Menu className="w-6 h-6" />
+            </Button>
+          </div>
+        </header>
+      )}
+
+      {/* Floating Exit Fullscreen Button */}
+      {isFullscreen && (
+        <button
+          onClick={handleExitFullscreen}
+          className="absolute top-4 right-4 z-50 p-3 bg-slate-900/50 hover:bg-slate-900 text-white/50 hover:text-white rounded-full backdrop-blur-md transition-all shadow-lg border border-white/10"
+          title="Salir de Pantalla Completa"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      )}
 
       {/* Main Board Area */}
       <main className="flex-1 overflow-hidden p-[2vh] flex flex-col items-center justify-center relative">
@@ -84,16 +111,17 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
               room={room}
               canGuess={!!(room.activeClue && room.activeClue.word)}
               onGuess={handleAdminGuess}
+              isFullscreen={isFullscreen}
             />
 
             {/* Active Clue Panel */}
-            <Card variant="default" padding="sm" glow className="w-full md:w-64 shrink-0 flex flex-col">
+            <Card variant="default" padding="sm" glow className="w-full md:min-w-64 md:w-auto md:max-w-xl shrink-0 flex flex-col transition-all duration-300">
               <h3 className="text-lg font-bold text-slate-300 border-b border-slate-800 pb-2 mb-4">Estado</h3>
 
               {room.activeClue ? (
                 <div className="flex-1 flex flex-col items-center justify-center space-y-6 animate-in fade-in zoom-in duration-300">
                   {!room.activeClue.word ? (
-                    <div className="flex flex-col items-center space-y-4 py-8 animate-pulse text-center">
+                    <div className="flex flex-col items-center space-y-4 py-8 animate-pulse text-center w-full">
                       <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center border-2 border-amber-500/30">
                         <Gamepad2 className="w-8 h-8 text-amber-500" />
                       </div>
@@ -107,7 +135,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                     <>
                       <span className="text-slate-500 uppercase tracking-widest text-xs font-semibold">Pista Actual</span>
                       <div
-                        className="text-3xl font-display font-black uppercase tracking-wider text-center p-4 rounded-xl w-full border-2"
+                        className="text-3xl font-display font-black uppercase tracking-wider text-center p-4 rounded-xl w-full border-2 break-words"
                         style={{
                           color: room.config.teams[room.activeClue.team].color,
                           backgroundColor: `${room.config.teams[room.activeClue.team].color}11`,
@@ -116,7 +144,7 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                       >
                         {room.activeClue.word}
                       </div>
-                      <p className="text-slate-400 text-center">
+                      <p className="text-slate-400 text-center px-2">
                         El equipo <span className="font-bold" style={{ color: room.config.teams[room.activeClue.team].color }}>{room.config.teams[room.activeClue.team].name}</span> debe adivinar la interesección.
                       </p>
                       {room.timerEndTime && <Timer endTime={room.timerEndTime} />}
@@ -131,6 +159,15 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
                   <p className="text-slate-400 text-center px-4">
                     Esperando que el <span className="font-bold" style={{ color: room.config.teams[room.currentTurn].color }}>{room.config.teams[room.currentTurn].name}</span> envíe la siguiente pista...
                   </p>
+                </div>
+              )}
+
+              {isFullscreen && (
+                <div className="mt-6 pt-6 border-t border-slate-800 animate-in slide-in-from-bottom duration-500">
+                  <div className="text-center mb-3">
+                    <span className="text-slate-500 uppercase tracking-[0.2em] text-[10px] font-bold">Puntuación</span>
+                  </div>
+                  <ScoreBoard room={room} />
                 </div>
               )}
             </Card>

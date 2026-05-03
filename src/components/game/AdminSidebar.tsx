@@ -13,7 +13,9 @@ import {
   Palette,
   Clock,
   PlusCircle,
-  Brain
+  Brain,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card } from '../ui/Card';
@@ -37,6 +39,7 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
   const [turnDuration, setTurnDuration] = useState<number | string>(room.config.turnDurationSeconds || 60);
   const [thinkingTimerEnabled, setThinkingTimerEnabled] = useState(!!room.config.thinkingTimerEnabled);
   const [thinkingDuration, setThinkingDuration] = useState<number | string>(room.config.thinkingDurationSeconds || 30);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Sync state when room config changes externally
   React.useEffect(() => {
@@ -44,6 +47,26 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
     setThinkingTimerEnabled(!!room.config.thinkingTimerEnabled);
     if (room.config.thinkingDurationSeconds) setThinkingDuration(room.config.thinkingDurationSeconds);
   }, [room.config.turnDurationSeconds, room.config.thinkingTimerEnabled, room.config.thinkingDurationSeconds]);
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   const pastelColors = [
     { name: 'Rose', hex: '#f9a8d4' },
@@ -278,6 +301,21 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
                   </div>
                 </div>
              )}
+          </section>
+
+          {/* Visual Section */}
+          <section className="space-y-4 pt-4 border-t border-slate-800/50">
+            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+              <Maximize className="w-3 h-3" /> Visualización
+            </div>
+            <Button
+              variant="ghost"
+              className={`w-full py-3 border ${isFullscreen ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50' : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:bg-slate-800'}`}
+              onClick={toggleFullscreen}
+              leftIcon={isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
+            >
+              {isFullscreen ? 'Salir de Pantalla Completa' : 'Ver en Pantalla Completa'}
+            </Button>
           </section>
         </div>
 
