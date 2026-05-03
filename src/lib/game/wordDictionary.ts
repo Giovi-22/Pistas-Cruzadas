@@ -201,3 +201,41 @@ export const GENERAL: WordItem[] = [
     { word: "Pasado", group: "tiempo" },
     { word: "Futuro", group: "tiempo" }
 ];
+
+export const MATRIMONIOS: WordItem[] = [
+    // personas
+    { word: "Esposo", group: "persona" },
+    { word: "Esposa", group: "persona" },
+    { word: "Novio", group: "persona" },
+    { word: "Novia", group: "persona" },
+    { word: "Pareja", group: "persona" },
+    { word: "Familia", group: "persona" },
+
+    // eventos
+    { word: "Boda", group: "evento" },
+    { word: "Fiesta", group: "evento" },
+    { word: "Aniversario", group: "evento" },
+    { word: "Luna de Miel", group: "evento" },
+
+    // objetos
+    { word: "Anillo", group: "objeto" },
+    { word: "Alianza", group: "objeto" },
+    { word: "Votos", group: "objeto" },
+
+    // conceptos
+    { word: "Amor", group: "concepto" },
+    { word: "Romance", group: "concepto" },
+    { word: "Pasión", group: "concepto" },
+    { word: "Fidelidad", group: "concepto" },
+    { word: "Confianza", group: "concepto" },
+
+    // acciones
+    { word: "Beso", group: "accion" },
+    { word: "Abrazo", group: "accion" },
+    { word: "Unión", group: "accion" },
+    { word: "Compromiso", group: "accion" },
+
+    // lugares
+    { word: "Iglesia", group: "lugar" },
+    { word: "Hogar", group: "lugar" }
+];

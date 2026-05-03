@@ -74,5 +74,24 @@ export const WORD_CATEGORIES: Category[] = [
         cols: ["Nota", "Planeta", "Pasado", "Laboratorio", "Pincel"]
       }
     ]
+  },
+  {
+    id: 'matrimonios',
+    name: 'Matrimonios',
+    icon: '💍',
+    sets: [
+      {
+        rows: ["Amor", "Anillo", "Boda", "Esposo", "Hogar"],
+        cols: ["Compromiso", "Fiesta", "Pacto", "Esposa", "Familia"]
+      },
+      {
+        rows: ["Beso", "Alianza", "Promesa", "Unión", "Pareja"],
+        cols: ["Novio", "Novia", "Luna de Miel", "Iglesia", "Votos"]
+      },
+      {
+        rows: ["Abrazo", "Aniversario", "Cariño", "Fidelidad", "Romance"],
+        cols: ["Confianza", "Juntos", "Pasión", "Compañía", "Vida"]
+      }
+    ]
   }
 ];

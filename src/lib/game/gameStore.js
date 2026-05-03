@@ -14,8 +14,8 @@ function createRoom(roomId) {
     id: roomId,
     players: {},
     config: {
-      rowWords: ["Torta", "Seguridad", "Lento", "Fuego", "Caballos"],
-      colWords: ["Felicidad", "Armadura", "Bombero", "Colectivo", "Oreja"],
+      rowWords: ["Discusión", "Rutina", "Vinculo", "Unión", "Compromiso"],
+      colWords: ["Dinero", "Tiempo", "Inicio", "Resultado", "Construcción"],
       turnDurationSeconds: 60,
       thinkingTimerEnabled: false,
       thinkingDurationSeconds: 30,

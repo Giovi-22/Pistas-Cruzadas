@@ -1,4 +1,4 @@
-import { BIBLIA, NATURALEZA, DEPORTES, GENERAL } from './wordDictionary';
+import { BIBLIA, NATURALEZA, DEPORTES, GENERAL, MATRIMONIOS } from './wordDictionary';
 
 type WordItem = {
     word: string;
@@ -50,6 +50,7 @@ export function generateSmartBoard(categoryName: string) {
     case 'BIBLIA': pool = BIBLIA; break;
     case 'NATURALEZA': pool = NATURALEZA; break;
     case 'DEPORTES': pool = DEPORTES; break;
+    case 'MATRIMONIOS': pool = MATRIMONIOS; break;
     default: pool = GENERAL; break;
   }
 
