@@ -7,7 +7,7 @@ export const RowCard = ({ r, rowWord }: { r: number, rowWord: string }) => {
                 <p className="relative top-0.5 font-display index-stroke">{String.fromCharCode(65 + r)}</p>
             </div>
             <div className="bg-[#6EAAAD] w-[35%] flex items-center justify-center border-l-4 border-slate-800/20 relative">
-                <span className="text-white font-bold uppercase text-[1.8vh] tracking-widest drop-shadow-md whitespace-nowrap origin-center -rotate-90 absolute">
+                <span className="text-white font-bold uppercase text-[1.7vh] tracking-wider drop-shadow-md whitespace-nowrap origin-center -rotate-90 absolute">
                     {rowWord}
                 </span>
             </div>

@@ -70,9 +70,9 @@ export const Cell = ({
               style={{ color: teamsConfig?.[claimed.team].color }}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center ">
+            <div className="relative flex items-center justify-center w-full h-full">
               <span
-                className="z-100 relative top-2 text-8xl font-display font-bold text-slate-900 index-stroke"
+                className="z-10 text-[8vh] leading-none font-display font-bold text-slate-900 index-stroke"
                 contentEditable={false}
                 tabIndex={-1}
                 style={{
@@ -82,7 +82,7 @@ export const Cell = ({
               >
                 {String.fromCharCode(65 + row)}
               </span>
-              <div className='absolute top-10 left-15'>
+              <div className='absolute right-[10%] bottom-[10%] z-20'>
                 <OffsetCircle
                   value={col + 1}
                   color={teamsConfig?.[claimed.team].color}

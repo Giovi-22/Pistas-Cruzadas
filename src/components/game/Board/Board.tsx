@@ -10,9 +10,10 @@ interface BoardProps {
   room: Room;
   canGuess?: boolean;
   onGuess?: (r: number, c: number) => void;
+  isFullscreen?: boolean;
 }
 
-export const Board = ({ room, canGuess = false, onGuess }: BoardProps) => {
+export const Board = ({ room, canGuess = false, onGuess, isFullscreen = false }: BoardProps) => {
   const { config, claimedCells, activeClue } = room;
 
   const getCellState = (r: number, c: number): ClaimedCell | undefined => {
@@ -20,9 +21,9 @@ export const Board = ({ room, canGuess = false, onGuess }: BoardProps) => {
   };
 
   return (
-    <div className="grid gap-[1vh] items-stretch justify-center" style={{
-      gridTemplateColumns: `16vh repeat(${config.colWords.length}, 13vh)`,
-      gridTemplateRows: `16vh repeat(${config.rowWords.length}, 13vh)`
+    <div className="grid gap-[1vh] items-stretch justify-center transition-all duration-500" style={{
+      gridTemplateColumns: isFullscreen ? `18vh repeat(${config.colWords.length}, 15vh)` : `17vh repeat(${config.colWords.length}, 14vh)`,
+      gridTemplateRows: isFullscreen ? `18vh repeat(${config.rowWords.length}, 15vh)` : `17vh repeat(${config.rowWords.length}, 14vh)`
     }}>
       {/* Empty top-left corner */}
       <div />
