@@ -12,10 +12,12 @@ import {
   Users,
   Palette,
   Clock,
+  Clock,
   PlusCircle,
   Brain,
   Maximize,
-  Minimize
+  Minimize,
+  QrCode
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card } from '../ui/Card';
@@ -30,9 +32,10 @@ interface AdminSidebarProps {
   onClose: () => void;
   room: Room;
   emit: (event: string, data: any) => void;
+  onOpenQR: () => void;
 }
 
-export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps) => {
+export const AdminSidebar = ({ isOpen, onClose, room, emit, onOpenQR }: AdminSidebarProps) => {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const [resetConfirm, setResetConfirm] = useState(false);
@@ -167,10 +170,16 @@ export const AdminSidebar = ({ isOpen, onClose, room, emit }: AdminSidebarProps)
                 <div className="truncate font-mono text-xs text-slate-400">
                   {room.id}
                 </div>
-                <Button size="sm" variant="ghost" onClick={handleCopyLink} className="h-8 gap-2">
-                  {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                  {copied ? 'Copiado' : 'Copiar Link'}
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="ghost" onClick={handleCopyLink} className="h-8 gap-2">
+                    {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                    {copied ? 'Copiado' : 'Link'}
+                  </Button>
+                  <Button size="sm" variant="primary" onClick={onOpenQR} className="h-8 gap-2 bg-indigo-600 hover:bg-indigo-500">
+                    <QrCode className="w-3 h-3" />
+                    QR
+                  </Button>
+                </div>
               </div>
             </Card>
           </section>

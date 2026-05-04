@@ -10,8 +10,9 @@ import { Timer } from '@/components/game/Timer';
 import { Card } from '@/components/ui/Card';
 import { GuessModal } from '@/components/game/GuessModal';
 import { AdminSidebar } from '@/components/game/AdminSidebar';
-import { Gamepad2, Menu, Settings, X } from 'lucide-react';
+import { Gamepad2, Menu, Settings, X, QrCode } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function ScreenPage({ params }: { params: Promise<{ roomId: string }> }) {
   const { roomId } = use(params);
@@ -19,7 +20,10 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
   const [isGuessModalOpen, setIsGuessModalOpen] = useState(false);
   const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{ row: number, col: number }>({ row: 0, col: 0 });
+  const [isQRModalOpen, setIsQRModalOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const joinUrl = typeof window !== 'undefined' ? `${window.location.origin}/mobile/${roomId}` : '';
 
   React.useEffect(() => {
     const handleFullscreenChange = () => {
@@ -189,7 +193,53 @@ export default function ScreenPage({ params }: { params: Promise<{ roomId: strin
         onClose={() => setIsAdminSidebarOpen(false)}
         room={room}
         emit={emit}
+        onOpenQR={() => setIsQRModalOpen(true)}
       />
+
+      {/* QR Modal */}
+      {isQRModalOpen && (
+        <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => setIsQRModalOpen(false)} />
+          <Card className="relative w-full max-w-sm bg-white p-8 flex flex-col items-center animate-in zoom-in duration-300 rounded-[2.5rem] shadow-2xl border-none">
+            <button 
+              onClick={() => setIsQRModalOpen(false)} 
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <div className="mb-6 text-center">
+              <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">¡Unite al Juego!</h2>
+              <div className="mt-1 flex items-center justify-center gap-2">
+                <span className="h-1 w-1 rounded-full bg-slate-300" />
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Escaneá el código</span>
+                <span className="h-1 w-1 rounded-full bg-slate-300" />
+              </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-[2rem] shadow-inner border-[12px] border-slate-50 flex items-center justify-center">
+               <QRCodeSVG 
+                value={joinUrl} 
+                size={220} 
+                level="H" 
+                includeMargin={false}
+                fgColor="#0f172a"
+              />
+            </div>
+            
+            <div className="mt-8 w-full">
+              <div className="bg-slate-900 text-white p-4 rounded-2xl flex flex-col items-center shadow-lg">
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 mb-1">Código de Sala</span>
+                <span className="text-3xl font-display font-black tracking-[0.2em]">{roomId}</span>
+              </div>
+            </div>
+            
+            <p className="mt-6 text-center text-slate-400 text-[11px] font-medium leading-relaxed px-4">
+              Apuntá con la cámara de tu celular para entrar como jugador automáticamente.
+            </p>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

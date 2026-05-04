@@ -55,7 +55,7 @@ function deleteRoom(roomId) {
   rooms.delete(roomId);
 }
 
-function joinRoom(roomId, socketId, name, createIfNotFound = false, identity = 'Player') {
+function joinRoom(roomId, socketId, name, createIfNotFound = false, identity = 'Player', playerId = null) {
   let room = getRoom(roomId);
   if (!room) {
     if (createIfNotFound) {
@@ -65,12 +65,32 @@ function joinRoom(roomId, socketId, name, createIfNotFound = false, identity = '
     }
   }
 
-  room.players[socketId] = {
-    socketId,
-    name: name || `Player ${socketId.substr(0, 4)}`,
-    team: null,
-    identity
-  };
+  // Session resumption logic: Check if a player with the same playerId exists
+  let existingPlayerId = null;
+  if (playerId) {
+    existingPlayerId = Object.keys(room.players).find(sid => room.players[sid].playerId === playerId);
+  }
+
+  if (existingPlayerId) {
+    // Resume session: Update socketId but keep team and name
+    const playerData = room.players[existingPlayerId];
+    delete room.players[existingPlayerId];
+    
+    room.players[socketId] = {
+      ...playerData,
+      socketId,
+      identity // Update identity just in case (e.g. going from lobby to screen, though rare)
+    };
+  } else {
+    // New session
+    room.players[socketId] = {
+      socketId,
+      playerId, // Store for future resumption
+      name: name || `Player ${socketId.substr(0, 4)}`,
+      team: null,
+      identity
+    };
+  }
 
   return room;
 }

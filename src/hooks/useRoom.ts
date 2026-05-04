@@ -23,9 +23,16 @@ export const useRoom = (roomId: string, name: string = 'Jugador', identity: 'Scr
   useEffect(() => {
     const socket = getSocket();
     
+    // Get or create persistent playerId
+    let playerId = localStorage.getItem('pistas_player_id');
+    if (!playerId) {
+      playerId = Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('pistas_player_id', playerId);
+    }
+    
     const synchronize = () => {
       setSocketId(socket.id || '');
-      socket.emit('join_room', { roomId, name, identity });
+      socket.emit('join_room', { roomId, name, identity, playerId });
     };
 
     const handleNotFound = () => {

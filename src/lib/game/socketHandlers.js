@@ -4,12 +4,19 @@ const { generateSecretCoordinates } = require('./utils');
 const roomTimeouts = new Map();
 
 function socketHandlers(io, socket) {
-  socket.on('join_room', ({ roomId, name, identity }) => {
+  socket.on('join_room', ({ roomId, name, identity, playerId }) => {
     socket.join(roomId);
     
+    // Cancel deletion timeout if Admin reconnects
+    if (identity === 'Screen' && roomTimeouts.has(`deletion-${roomId}`)) {
+      console.log(`[Socket] Admin reconnected to ${roomId}. Cancelling deletion timeout.`);
+      clearTimeout(roomTimeouts.get(`deletion-${roomId}`));
+      roomTimeouts.delete(`deletion-${roomId}`);
+    }
+
     // Create if Screen, otherwise just join
     const createIfNotFound = (identity === 'Screen');
-    const room = joinRoom(roomId, socket.id, name, createIfNotFound, identity);
+    const room = joinRoom(roomId, socket.id, name, createIfNotFound, identity, playerId);
     
     if (!room) {
       socket.emit('room_not_found');
@@ -259,10 +266,22 @@ function socketHandlers(io, socket) {
         }
 
         if (isScreen) {
-          console.log(`[Socket] Admin disconnected. Deleting room: ${roomId}`);
-          deleteRoom(roomId);
-          io.to(roomId).emit('room_not_found');
-          continue; // Move to next room check (though usually one per socket)
+          console.log(`[Socket] Admin disconnected. Setting 60s timeout to delete room: ${roomId}`);
+          
+          // Clear any existing deletion timeout for this room
+          if (roomTimeouts.has(`deletion-${roomId}`)) {
+            clearTimeout(roomTimeouts.get(`deletion-${roomId}`));
+          }
+
+          const tid = setTimeout(() => {
+             console.log(`[Socket] Admin timeout reached. Deleting room: ${roomId}`);
+             deleteRoom(roomId);
+             io.to(roomId).emit('room_not_found');
+             roomTimeouts.delete(`deletion-${roomId}`);
+          }, 60000); // 60 seconds grace period
+          
+          roomTimeouts.set(`deletion-${roomId}`, tid);
+          continue;
         }
 
         leaveRoom(roomId, socket.id);
